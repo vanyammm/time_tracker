@@ -1,20 +1,68 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import "react-native-gesture-handler";
+import {enableScreens} from "react-native-screens";
+enableScreens();
+import {Suspense} from "react";
+import {
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
+import {SQLiteProvider, openDatabaseSync} from "expo-sqlite";
+import {useMigrations} from "drizzle-orm/expo-sqlite/migrator";
+import migrations from "./drizzle/migrations";
+
+import {RootNavigator} from "./src/navigation/RootNavigator";
+import {NavigationContainer} from "@react-navigation/native";
+import {COLORS} from "./src/theme/colors";
+import {DATABASE_NAME} from "./src/constants";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {db} from "./src/db";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {Provider} from "react-redux";
+import {store} from "./src/store/store";
+
+const resetOnboarding = async () => {
+  try {
+    console.log("!!!!!!!!!!!!!! RESETTING ONBOARDING STATUS !!!!!!!!!!!!!!");
+    await AsyncStorage.removeItem("@onboarding_completed");
+  } catch (e) {
+    console.error("Failed to reset onboarding status", e);
+  }
+};
+// resetOnboarding();
 
 export default function App() {
+  const {success, error} = useMigrations(db, migrations);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Provider store={store}>
+      <Suspense fallback={<ActivityIndicator size="large" />}>
+        <SQLiteProvider
+          databaseName={DATABASE_NAME}
+          options={{enableChangeListener: true}}
+          useSuspense
+        >
+          <GestureHandlerRootView style={{flex: 1}}>
+            <SafeAreaView style={{flex: 1, backgroundColor: COLORS.darkBlue}}>
+              <NavigationContainer>
+                <RootNavigator />
+                {/* <MainNavigation /> */}
+              </NavigationContainer>
+            </SafeAreaView>
+          </GestureHandlerRootView>
+        </SQLiteProvider>
+      </Suspense>
+    </Provider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

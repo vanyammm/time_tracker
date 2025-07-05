@@ -23,6 +23,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b7ace3f5-c101-45d3-9d98-0e6524b07160"
+      }
     }
   }
 }
