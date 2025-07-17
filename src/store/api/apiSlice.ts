@@ -1,6 +1,11 @@
 import {createApi, fakeBaseQuery} from "@reduxjs/toolkit/query/react";
 import {signIn, signUp} from "../../services/authService";
-import type {User, Challenge} from "../../../db/schema";
+import type {
+  User,
+  Challenge,
+  ChallengeParticipantDetails,
+  GroupedChallenge,
+} from "../../../db/schema";
 import {
   toChallengeForState,
   toChallengesForState,
@@ -12,6 +17,10 @@ import {
   createChallenge,
   getChallengeById,
   getChallengesByUserId,
+  getParticipantsByChallengeId,
+  getGroupedActiveChallenges,
+  addProgressToChallenges,
+  updateChallengeStatuses,
 } from "../../services/challengeService";
 import {QueryBuilder} from "drizzle-orm/gel-core";
 
@@ -24,10 +33,16 @@ interface CreateChallengeArgs {
   hostId: number;
 }
 
+interface AddProgressArgs {
+  userId: number;
+  challengeIds: number[];
+  secondsToAdd: number;
+}
+
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fakeBaseQuery(),
-  tagTypes: ["User", "Challenge"],
+  tagTypes: ["User", "Challenge", "Participant"],
   endpoints: (builder) => ({
     signIn: builder.mutation<
       UserForState,
@@ -63,7 +78,7 @@ export const apiSlice = createApi({
           return {error: {message: error.message}};
         }
       },
-      invalidatesTags: ["Challenge"],
+      invalidatesTags: [{type: "Challenge", id: "LIST"}],
     }),
     getChallengeById: builder.query<Challenge | null, number>({
       queryFn: async (id) => {
@@ -93,6 +108,67 @@ export const apiSlice = createApi({
             ]
           : [{type: "Challenge", id: "LIST"}],
     }),
+    getChallengeParticipants: builder.query<
+      ChallengeParticipantDetails[],
+      number
+    >({
+      // Перший тип - що повертає (масив учасників), другий - що приймає (ID челенджу)
+      queryFn: async (challengeId) => {
+        try {
+          const participants = await getParticipantsByChallengeId(challengeId);
+          // Тут не потрібна функція-маппер `to...ForState`, бо дані вже в потрібному форматі
+          return {data: participants};
+        } catch (error: any) {
+          return {error: {message: error.message}};
+        }
+      },
+      // Надаємо тег, щоб кеш знав, з якими даними він працює
+      // Це корисно, якщо в майбутньому знадобиться оновлювати список учасників
+      providesTags: (result, error, challengeId) => [
+        {type: "Participant", id: `LIST-${challengeId}`},
+      ],
+    }),
+    getGroupedChallenges: builder.query<GroupedChallenge[], number>({
+      queryFn: async (userId) => {
+        try {
+          const groupedChallenges = await getGroupedActiveChallenges(userId);
+          return {data: groupedChallenges};
+        } catch (error: any) {
+          return {error: {message: error.message}};
+        }
+      },
+      providesTags: (result) => [{type: "Challenge", id: "LIST"}],
+    }),
+    addProgress: builder.mutation<{success: boolean}, AddProgressArgs>({
+      queryFn: async (args) => {
+        try {
+          await addProgressToChallenges(
+            args.userId,
+            args.challengeIds,
+            args.secondsToAdd,
+          );
+          return {data: {success: true}};
+        } catch (error: any) {
+          return {error: {message: error.message}};
+        }
+      },
+      invalidatesTags: (result, error, args) =>
+        args.challengeIds.map((id) => ({
+          type: "Participant",
+          id: `LIST-${id}`,
+        })),
+    }),
+    triggerStatusUpdate: builder.mutation<{updatedCount: number}, void>({
+      queryFn: async () => {
+        try {
+          const result = await updateChallengeStatuses();
+          return {data: result};
+        } catch (error: any) {
+          return {error: {message: error.message}};
+        }
+      },
+      invalidatesTags: [{type: "Challenge", id: "LIST"}],
+    }),
   }),
 });
 export const {
@@ -101,4 +177,8 @@ export const {
   useCreateChallengeMutation,
   useGetChallengeByIdQuery,
   useGetChallengesQuery,
+  useGetChallengeParticipantsQuery,
+  useGetGroupedChallengesQuery,
+  useAddProgressMutation,
+  useTriggerStatusUpdateMutation,
 } = apiSlice;

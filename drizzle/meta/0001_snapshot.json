@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "365e10ea-e363-42aa-bb9c-73488b167a54",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "7812e74a-e002-4763-9d27-a5e0880114b2",
+  "prevId": "365e10ea-e363-42aa-bb9c-73488b167a54",
   "tables": {
     "challenge_participants": {
       "name": "challenge_participants",
@@ -328,13 +328,21 @@
           "notNull": true,
           "autoincrement": false
         },
+        "coins": {
+          "name": "coins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 900
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'\"2025-07-14T20:28:30.399Z\"'"
+          "default": "'\"2025-07-14T21:11:29.782Z\"'"
         }
       },
       "indexes": {

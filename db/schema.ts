@@ -23,6 +23,8 @@ export const users = sqliteTable("users", {
   // 5. Денна ціль активності в хвилинах
   dailyGoalMinutes: integer("daily_goal_minutes").notNull(),
 
+  coins: integer("coins").notNull().default(900),
+
   // 6. Дата реєстрації (зберігається як число - Unix timestamp)
   createdAt: integer("created_at", {mode: "timestamp"})
     .notNull()
@@ -37,7 +39,7 @@ export const users = sqliteTable("users", {
 
 // Створимо типи-переліки для безпеки даних
 const challengeTypes = ["regular", "streak", "race", "team"] as const;
-const challengeStatuses = ["active", "completed", "failed", "pending"] as const;
+const challengeStatuses = ["active", "finished", "pending"] as const;
 
 export const challenges = sqliteTable("challenges", {
   // 1. Унікальний ID челенджу
@@ -78,6 +80,9 @@ export const challenges = sqliteTable("challenges", {
 // Таблиця-зв'язок "багато-до-багатьох" між users і challenges.
 // Показує, хто в якому челенджі бере участь.
 // -----------------------------------------------------------------
+
+const participantStatuses = ["in_progress", "completed", "failed"] as const;
+
 export const challengeParticipants = sqliteTable(
   "challenge_participants",
   {
@@ -93,6 +98,9 @@ export const challengeParticipants = sqliteTable(
 
     // 3. Поточний прогрес учасника (наприклад, виконані години)
     progress: integer("progress").notNull().default(0),
+    status: text("status", {enum: participantStatuses})
+      .notNull()
+      .default("in_progress"),
   },
   (table) => {
     // Створюємо складений первинний ключ, щоб пара (користувач, челендж) була унікальною.
@@ -172,3 +180,16 @@ export type NewChallenge = typeof challenges.$inferInsert;
 
 export type Participant = typeof challengeParticipants.$inferSelect;
 export type NewParticipant = typeof challengeParticipants.$inferInsert;
+
+export type ChallengeParticipantDetails = {
+  userId: number;
+  username: string;
+  avatarGradient: string[];
+  progress: number;
+  status: "in_progress" | "completed" | "failed";
+};
+
+export type GroupedChallenge = {
+  action: string;
+  challengeIds: number[];
+};

@@ -4,7 +4,7 @@ import React from "react";
 import {COLORS} from "../../theme/colors";
 
 interface ChallengeCardProgressBarProps {
-  type: "Regular" | "Streak" | "Race" | "Team";
+  type: "regular" | "streak" | "race" | "team";
 
   expectedProgressPercentage?: number;
   progressPercentage: number;
@@ -17,10 +17,10 @@ export const ChallengeCardProgressBar: React.FC<
     <View
       style={[
         styles.challengeProgressBar,
-        type === "Race" ? {height: 12} : {height: 9},
+        type === "race" ? {height: 12} : {height: 9},
       ]}
     >
-      {type !== "Race" && expectedProgressPercentage && (
+      {type !== "race" && expectedProgressPercentage && (
         <View
           style={[
             styles.challengeProgressBarScheduleMark,

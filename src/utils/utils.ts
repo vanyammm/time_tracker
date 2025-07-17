@@ -33,16 +33,16 @@ export const generateChallengeDescriptionString = ({
 }: ChallengeData): string => {
   let output = "";
   switch (type) {
-    case "Regular":
+    case "regular":
       output = `${action} a total of ${hoursAmount} hours in ${daysAmount} days.`;
       break;
-    case "Race":
-      output = `Be first to ${action} a total of ${hoursAmount} hours.`;
+    case "race":
+      output = `${action} Race to ${hoursAmount}h.`;
       break;
-    case "Streak":
+    case "streak":
       output = `${action} for ${hoursAmount} hours daily for ${daysAmount} consecutive days.`;
       break;
-    case "Team":
+    case "team":
       output = `Collectively ${action} a total of ${hoursAmount} hours in ${daysAmount} days.`;
   }
   return output;

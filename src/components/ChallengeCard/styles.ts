@@ -38,4 +38,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
   },
+  challengeParticipant: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 5,
+    // backgroundColor: "purple",
+  },
 });

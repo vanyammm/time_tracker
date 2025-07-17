@@ -1,7 +1,7 @@
 import "react-native-gesture-handler";
 import {enableScreens} from "react-native-screens";
 enableScreens();
-import {Suspense} from "react";
+import {Suspense, useEffect} from "react";
 import {
   StyleSheet,
   StatusBar,
@@ -22,6 +22,9 @@ import {db} from "./src/db";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {Provider} from "react-redux";
 import {store} from "./src/store/store";
+
+import {useTriggerStatusUpdateMutation} from "./src/store/api/apiSlice";
+import {AppContent} from "./src/AppContent";
 
 const resetOnboarding = async () => {
   try {
@@ -46,10 +49,10 @@ export default function App() {
         >
           <GestureHandlerRootView style={{flex: 1}}>
             <SafeAreaView style={{flex: 1, backgroundColor: COLORS.darkBlue}}>
-              <NavigationContainer>
+              {/* <NavigationContainer>
                 <RootNavigator />
-                {/* <MainNavigation /> */}
-              </NavigationContainer>
+              </NavigationContainer> */}
+              <AppContent />
             </SafeAreaView>
           </GestureHandlerRootView>
         </SQLiteProvider>

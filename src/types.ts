@@ -1,6 +1,6 @@
 export interface ChallengeData {
   action: string;
-  type: "Regular" | "Streak" | "Race" | "Team";
+  type: "regular" | "streak" | "race" | "team";
   hoursAmount: number;
   daysAmount?: number;
 }

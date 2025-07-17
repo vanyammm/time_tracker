@@ -19,6 +19,7 @@ import {GestureDetector, Gesture} from "react-native-gesture-handler";
 import {common} from "../../theme/commonStyles";
 import {COLORS} from "../../theme/colors";
 import {useOnboardingData} from "../../context/OnboardingContext";
+import {useTimerActions, useTimerStore} from "../../store/timerStore";
 
 const {width} = Dimensions.get("window");
 const SIZE = (width - 45) / 1.4;
@@ -76,23 +77,19 @@ const ClockTickMarks = React.memo(() => {
 const isPointInArrow = (x: number, y: number, angle: number): boolean => {
   "worklet";
 
-  // Переносимо точку в систему координат де центр стрілки в (0,0)
   const translatedX = x - CENTER_X;
   const translatedY = y - CENTER_Y;
 
-  // Повертаємо точку на зворотний кут
   const cosAngle = Math.cos(-angle);
   const sinAngle = Math.sin(-angle);
   const rotatedX = translatedX * cosAngle - translatedY * sinAngle;
   const rotatedY = translatedX * sinAngle + translatedY * cosAngle;
 
-  // Перевіряємо чи знаходиться точка в межах стрілки
   const arrowLeft = -ARROW_WIDTH / 2;
   const arrowRight = ARROW_WIDTH / 2;
   const arrowTop = -ARROW_HEIGHT;
   const arrowBottom = 0;
 
-  // Додаємо трохи запасу для зручності дотику (touch area padding)
   const touchPadding = 15;
 
   return (
@@ -108,28 +105,23 @@ interface TimerProps {
 }
 
 export const Timer: React.FC<TimerProps> = ({onboarding}) => {
+  const {status, remainingSeconds, durationSeconds} = useTimerStore();
+  const {setDuration} = useTimerActions();
+
   const onboardingContext = onboarding ? useOnboardingData() : null;
   const setDailyGoalMinutes = onboardingContext?.setDailyGoalMinutes;
-  const initialTotalMinutes = 45;
+  // const initialTotalMinutes = 45;
+  const initialMinutes = useTimerStore.getState().durationSeconds / 60;
 
-  const totalLogicalMinutes = useSharedValue(initialTotalMinutes);
-  const initialAngle =
-    (initialTotalMinutes % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
-
-  useEffect(() => {
-    if (onboardingContext && setDailyGoalMinutes) {
-      setDailyGoalMinutes(String(totalLogicalMinutes.value));
-    }
-  }, []);
-
+  const totalLogicalMinutes = useSharedValue(initialMinutes);
+  const initialAngle = (initialMinutes % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
   const visualAngle = useSharedValue(initialAngle);
-
   const previousTouchAngle = useSharedValue(initialAngle);
   const isArrowTouch = useSharedValue(false);
 
   const [displayTime, setDisplayTime] = useState(() => {
-    const hours = Math.floor(initialTotalMinutes / MINUTES_IN_HOUR);
-    const minutes = initialTotalMinutes % MINUTES_IN_HOUR;
+    const hours = Math.floor(initialMinutes / MINUTES_IN_HOUR);
+    const minutes = initialMinutes % MINUTES_IN_HOUR;
     return {hours, minutes};
   });
 
@@ -137,9 +129,64 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
     setDisplayTime({hours, minutes});
   }, []);
 
-  const gesture = Gesture.Pan()
+  const rotationTransform = useDerivedValue(() => {
+    if (status === "running" || status === "paused") {
+      const totalMinutesLeft = remainingSeconds / 60;
+      const angle = (totalMinutesLeft % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
 
+      return [{rotate: angle}];
+    }
+
+    return [{rotate: visualAngle.value}];
+  }, [visualAngle, status, remainingSeconds]);
+
+  const endTimeString = useMemo(() => {
+    const now = new Date();
+
+    const endTime = new Date(now.getTime());
+    endTime.setHours(endTime.getHours() + displayTime.hours);
+    endTime.setMinutes(endTime.getMinutes() + displayTime.minutes);
+
+    const formatTime = (date: Date) => {
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    };
+
+    return `${formatTime(now)} - ${formatTime(endTime)}`;
+  }, [displayTime]);
+
+  const secondsForDisplay =
+    status === "running" || status === "paused" ? remainingSeconds % 60 : 0;
+
+  useEffect(() => {
+    if (onboardingContext && setDailyGoalMinutes) {
+      setDailyGoalMinutes(String(totalLogicalMinutes.value));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === "paused" || status === "running") {
+      const hours = Math.floor(remainingSeconds / 3600);
+      const minutes = Math.floor((remainingSeconds % 3600) / 60);
+
+      setDisplayTime({hours, minutes});
+    } else if (status === "idle") {
+      const minutesFromStore = durationSeconds / 60;
+      totalLogicalMinutes.value = minutesFromStore;
+      setDisplayTime({
+        hours: Math.floor(minutesFromStore / MINUTES_IN_HOUR),
+        minutes: minutesFromStore % MINUTES_IN_HOUR,
+      });
+    }
+  }, [remainingSeconds, status, durationSeconds]);
+
+  const gesture = Gesture.Pan()
     .onTouchesDown((event, stateManager) => {
+      if (status !== "idle") {
+        stateManager.fail();
+        return;
+      }
       const isOnArrow = isPointInArrow(
         event.allTouches[0].x,
         event.allTouches[0].y,
@@ -149,7 +196,7 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
         isArrowTouch.value = true;
       } else {
         isArrowTouch.value = false;
-        stateManager.fail(); // Якщо не на стрілці, відхиляємо жест
+        stateManager.fail();
       }
     })
     .onBegin((event) => {
@@ -157,7 +204,6 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
       isArrowTouch.value = isOnArrow;
 
       if (!isOnArrow) {
-        // Якщо дотик не на стрілці, не обробляємо жест
         return;
       }
       cancelAnimation(visualAngle);
@@ -219,6 +265,11 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
         Math.round(finalLogicalMinutes / SNAP_INTERVAL) * SNAP_INTERVAL,
       );
 
+      if (status === "idle") {
+        const newDurationInSeconds = snappedTotalMinutes * 60;
+        runOnJS(setDuration)(newDurationInSeconds);
+      }
+
       const targetAngle =
         (snappedTotalMinutes % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
 
@@ -241,28 +292,6 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
         },
       );
     });
-
-  const rotationTransform = useDerivedValue(() => {
-    return [{rotate: visualAngle.value}];
-  }, [visualAngle]);
-
-  const endTimeString = useMemo(() => {
-    const now = new Date(); // Беремо поточний час
-
-    // Створюємо копію поточної дати, щоб додати до неї тривалість таймера
-    const endTime = new Date(now.getTime());
-    endTime.setHours(endTime.getHours() + displayTime.hours);
-    endTime.setMinutes(endTime.getMinutes() + displayTime.minutes);
-
-    // Функція-хелпер для форматування часу в "HH:MM"
-    const formatTime = (date: Date) => {
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      return `${hours}:${minutes}`;
-    };
-
-    return `${formatTime(now)} - ${formatTime(endTime)}`;
-  }, [displayTime]);
 
   return (
     <View
@@ -302,8 +331,10 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
       <Text style={[common.whiteNormalText, {fontSize: 37, fontWeight: 800}]}>
         {`${String(displayTime.hours).padStart(2, "0")} : ${String(
           displayTime.minutes,
-        ).padStart(2, "0")}`}{" "}
-        : 00
+        ).padStart(2, "0")} : ${String(secondsForDisplay).padStart(
+          2,
+          "0",
+        )}`}{" "}
       </Text>
       {!onboarding && (
         <Text style={[common.normalSizeText, {color: COLORS.lightGray}]}>

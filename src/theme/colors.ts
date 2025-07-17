@@ -9,6 +9,7 @@ export const COLORS = {
   modalBg: "#202938",
   dark: "#151c2c",
   red: "#f12634",
+  blue: "#07679f",
 };
 
 export const TEXT_COLORS = {

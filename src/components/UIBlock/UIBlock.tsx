@@ -1,11 +1,12 @@
 import React, {ReactNode} from "react";
 import {styles} from "./styles";
-import {View} from "react-native";
+import {StyleProp, View, ViewStyle} from "react-native";
 
 interface UIBlockProps {
   children: ReactNode;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const UIBlock: React.FC<UIBlockProps> = ({children}) => {
-  return <View style={styles.UIBlock}>{children}</View>;
+export const UIBlock: React.FC<UIBlockProps> = ({children, style}) => {
+  return <View style={[styles.UIBlock, style]}>{children}</View>;
 };

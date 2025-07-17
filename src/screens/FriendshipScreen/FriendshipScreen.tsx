@@ -1,6 +1,13 @@
-import {View, Text, Button, ScrollView, FlatList} from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  ScrollView,
+  FlatList,
+  TouchableHighlight,
+} from "react-native";
 import {commonScreenStyles} from "../commonStyles";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {ChallengeCreateModal} from "../../components/ChallengeCreateModal/ChallengeCreateModal";
 import {styles} from "./styles";
 import {common} from "../../theme/commonStyles";
@@ -12,8 +19,13 @@ import {FinishFlag} from "../../assets/svg/FinishFlag";
 import {CircleDots} from "../../assets/svg/CircleDots";
 import {CirclePlus} from "../../assets/svg/CirclePlus";
 import {useUserStore} from "../../store/userStore";
-import {useGetChallengesQuery} from "../../store/api/apiSlice";
+import {
+  useGetChallengesQuery,
+  useTriggerStatusUpdateMutation,
+} from "../../store/api/apiSlice";
 import {ChallengeCard} from "../../components/ChallengeCard/ChallengeCard";
+import {useIsFocused} from "@react-navigation/native";
+import {FriendshipModal} from "../../components/FriendshipModal/FriendshipModal";
 
 const top3leaderBoardMock = [
   {position: 2, usrId: 123, nickname: "Roman Pohribnyak", time: "13h 13m"},
@@ -37,9 +49,20 @@ pozavchora.setDate(today.getDate() - 1);
 
 export const FriendshipScreen = () => {
   const [challengeModalShown, setChallengeModalShown] = useState(false);
+  const [friendshipModalShown, setFriendshipModalShown] = useState(false);
   // const {user} = useUserStore();
 
+  const isFocused = useIsFocused();
+  const [triggerUpdate] = useTriggerStatusUpdateMutation();
+
+  useEffect(() => {
+    console.log("[FrineshipScreen] triggering challenges status check.");
+    if (isFocused) triggerUpdate();
+  }, [isFocused]);
+
   const user = useUserStore((state) => state.user);
+
+  // console.log("[FriendshipScreen] user:", user);
 
   const {
     data: challenges,
@@ -51,8 +74,14 @@ export const FriendshipScreen = () => {
     skip: !user,
   });
 
-  const handleOpenModal = () => {
+  // console.log("challenges", challenges);
+
+  const handleOpenChallengeCreateModal = () => {
     setChallengeModalShown((prev) => !prev);
+  };
+
+  const handleOpenFriendshipModal = () => {
+    setFriendshipModalShown((prev) => !prev);
   };
 
   return (
@@ -69,30 +98,25 @@ export const FriendshipScreen = () => {
         </Text>
         <CircleDots width={30} height={30} />
       </View>
-      <UIBlock>
-        <View style={[styles.tipBlockHeader]}>
-          <Text style={[common.whiteNormalBoldText]}>Earn Your Apps</Text>
-          <Text style={[common.normalBoldText, styles.tipBlockHeaderText]}>
-            Set up {">"}
-          </Text>
-        </View>
-        <View style={[styles.schemaBlock]}></View>
-        <Text style={[styles.tipBlockSecondaryText]}>
-          Automaticaly lock distracting apps until you have achieved your daily
-          focus goal.
-        </Text>
-      </UIBlock>
+
       <View>
-        <ChallengeCard
-          type="Regular"
-          daysAmount={7}
-          hoursAmount={40}
-          action="Focus"
-          challengeStatus="completed"
-          startDate={pozavchora}
-          progress={7.4 * 60 * 60}
-        />
+        {/* <ChallengeCard
+          challenge={{
+            type: "regular",
+            daysAmount: 7,
+            hoursAmount: 40,
+            action: "Focus",
+            challengeStatus: "completed",
+            startDate: pozavchora,
+            // progress: 7.4 * 60 * 60,
+          }}
+        /> */}
       </View>
+      <FlatList
+        data={challenges}
+        scrollEnabled={false}
+        renderItem={({item}) => <ChallengeCard challenge={item} />}
+      />
       <UIBlock>
         <View style={{flexDirection: "row", justifyContent: "space-between"}}>
           <Text
@@ -111,7 +135,9 @@ export const FriendshipScreen = () => {
         <Text style={[common.whiteNormalBoldText, styles.socialHeaderText]}>
           Social
         </Text>
-        <CirclePlus width={30} height={30} />
+        <TouchableHighlight onPress={handleOpenFriendshipModal}>
+          <CirclePlus width={30} height={30} />
+        </TouchableHighlight>
       </View>
       <View style={[styles.socialList]}>
         <View style={[styles.socialListItemWrapper]}>
@@ -124,6 +150,16 @@ export const FriendshipScreen = () => {
           <Text style={[common.whiteNormalText]}>Vanya M...</Text>
         </View>
       </View>
+      <FlatList
+        data={[1]}
+        horizontal={true}
+        renderItem={() => (
+          <View style={[styles.socialListItemWrapper]}>
+            <View style={[styles.socialListItem]}></View>
+            <Text style={[common.whiteNormalText]}>Vanya M...</Text>
+          </View>
+        )}
+      />
       <UIBlock>
         <View style={[styles.leaderBoardHeader]}>
           <Text style={[common.whiteNormalBoldText, {fontSize: 20}]}>
@@ -222,7 +258,9 @@ export const FriendshipScreen = () => {
                   <View
                     style={{flexDirection: "row", gap: 7, alignItems: "center"}}
                   >
-                    <Text style={[common.whiteNormalText]}>{index + 4}.</Text>
+                    <View style={{width: 25, alignItems: "flex-start"}}>
+                      <Text style={[common.whiteNormalText]}>{index + 4}.</Text>
+                    </View>
                     <UserAvatarCircle style={{width: 23, height: 23}} />
                     <Text style={[common.whiteNormalText]}>
                       {item.nickname}
@@ -242,11 +280,18 @@ export const FriendshipScreen = () => {
           })}
         </View>
       </UIBlock>
-      <Button title="New challenge" onPress={handleOpenModal} />
+      <Button title="New challenge" onPress={handleOpenChallengeCreateModal} />
       {challengeModalShown && (
         <ChallengeCreateModal
           visible={challengeModalShown}
           setVisible={setChallengeModalShown}
+        />
+      )}
+      {user && friendshipModalShown && (
+        <FriendshipModal
+          user={user}
+          visible={friendshipModalShown}
+          setVisible={setFriendshipModalShown}
         />
       )}
     </ScrollView>

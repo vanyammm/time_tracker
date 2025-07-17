@@ -2,6 +2,7 @@ CREATE TABLE `challenge_participants` (
 	`user_id` integer NOT NULL,
 	`challenge_id` integer NOT NULL,
 	`progress` integer DEFAULT 0 NOT NULL,
+	`status` text DEFAULT 'in_progress' NOT NULL,
 	PRIMARY KEY(`user_id`, `challenge_id`),
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`challenge_id`) REFERENCES `challenges`(`id`) ON UPDATE no action ON DELETE cascade
@@ -43,7 +44,7 @@ CREATE TABLE `users` (
 	`password_hash` text NOT NULL,
 	`avatar_gradient` text NOT NULL,
 	`daily_goal_minutes` integer NOT NULL,
-	`created_at` integer DEFAULT '"2025-06-25T14:24:04.991Z"' NOT NULL
+	`created_at` integer DEFAULT '"2025-07-14T20:28:30.399Z"' NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);
