@@ -1,9 +1,6 @@
 import React, {useState} from "react";
 import {View, StyleSheet, Button, Text, Dimensions} from "react-native";
 import Carousel from "react-native-reanimated-carousel";
-import {common} from "../../../theme/commonStyles";
-import {Timer} from "../../../components/Timer/Timer";
-import {UIButton} from "../../../components/UIButton/UIButton";
 import {TimerSlide} from "./TimerSlide";
 import {TimerConfigurationSlide} from "./TimerConfigurationSlide";
 
@@ -22,7 +19,7 @@ export const TimerSlider: React.FC = () => {
       <Carousel
         loop={false}
         width={width - 11 * 2}
-        height={height * 0.6}
+        height={height * 0.55}
         autoPlay={false}
         data={pages}
         scrollAnimationDuration={500}
@@ -72,8 +69,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   dot: {
-    width: 10,
-    height: 10,
+    width: 7,
+    height: 7,
     borderRadius: 5,
     backgroundColor: "#333",
     marginHorizontal: 5,

@@ -10,11 +10,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: "center",
     backgroundColor: COLORS.darkBlue,
-    // backgroundColor: "pink",
   },
   buttonsContainer: {
     alignItems: "center",
-    // backgroundColor: "purple",
   },
   nextButton: {
     paddingVertical: 17,
@@ -23,14 +21,12 @@ export const styles = StyleSheet.create({
   },
   skipButton: {
     backgroundColor: "transparent",
+    padding: 10,
   },
   nextButtonText: {
     color: COLORS.darkBlue,
     fontSize: 16,
     fontWeight: "bold",
-  },
-  skipButton: {
-    padding: 10,
   },
   skipButtonText: {
     color: "gray",

@@ -5,7 +5,7 @@ export type RegistrationData = Partial<NewUser> & {
   password?: string;
 };
 
-type OnboardingContextType = {
+export type OnboardingContextType = {
   createdChallengeId: number | null;
   setCreatedChallengeId: (id: number | null) => void;
   gradient: string[] | null;
@@ -18,6 +18,7 @@ type OnboardingContextType = {
   setDailyGoalMinutes: (data: string | null) => void;
   isNextStepAllowed: boolean;
   setIsNextStepAllowed: (isAllowed: boolean) => void;
+  finishOnboarding: () => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
@@ -45,12 +46,14 @@ export const OnboardingDataProvider: React.FC<{children: ReactNode}> = ({
   const [registrationData, setRegistrationData] = useState<RegistrationData>(
     {},
   );
-  console.log("reg data", registrationData);
-  console.log("context: gradient value", gradient);
-  console.log("context: dailyGoalMinutes value", dailyGoalMinutes);
+  // console.log("reg data", registrationData);
+  // console.log("context: gradient value", gradient);
+  // console.log("context: dailyGoalMinutes value", dailyGoalMinutes);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [isNextStepAllowed, setIsNextStepAllowed] = useState(true);
+
+  const finishOnboarding = () => {};
 
   // console.log("isnextstepallowed", isNextStepAllowed);
 
@@ -67,6 +70,7 @@ export const OnboardingDataProvider: React.FC<{children: ReactNode}> = ({
     setCurrentUser,
     isNextStepAllowed,
     setIsNextStepAllowed,
+    finishOnboarding,
   };
 
   return (

@@ -1,10 +1,10 @@
 import {View, Text, TextInput, TouchableOpacity} from "react-native";
-import {styles} from "./styles";
 import {forwardRef, useImperativeHandle, useState} from "react";
 import {challengeTypes} from "./ChallengeTypeButtons";
 import Animated, {FadeIn, FadeOut} from "react-native-reanimated";
-import {TextInputModal} from "../TextInputModal/TextInputModal";
+import {TextInputModal} from "../../components/TextInputModal/TextInputModal";
 import {common} from "../../theme/commonStyles";
+import {styles} from "./styles";
 
 interface ChallengeConfigurationProps {
   activeIndex: number;
@@ -58,7 +58,7 @@ export const ChallengeConfiguration = forwardRef<
     const [daysAmountModalVisible, setDaysAmountModalVisible] = useState(false);
 
     return (
-      <View style={{width: "100%", marginBottom: 15}}>
+      <View style={{marginBottom: 15}}>
         <Animated.View
           style={[styles.challengeConfigurationContainer]}
           entering={FadeIn.duration(250)}

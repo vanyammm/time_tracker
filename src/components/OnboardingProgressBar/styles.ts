@@ -4,7 +4,7 @@ import {COLORS} from "../../theme/colors";
 export const styles = StyleSheet.create({
   container: {
     height: 5,
-    backgroundColor: COLORS.lightDarkBlue, // Фон полоси
+    backgroundColor: COLORS.lightDarkBlue,
     borderRadius: 4,
     overflow: "hidden",
     marginHorizontal: 20,
@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
   },
   progress: {
     height: "100%",
-    backgroundColor: COLORS.lightGreen, // Зелений колір
+    backgroundColor: COLORS.lightGreen,
     borderRadius: 4,
   },
 });

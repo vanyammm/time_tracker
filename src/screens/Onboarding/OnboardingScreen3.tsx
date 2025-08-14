@@ -5,14 +5,30 @@ import {styles} from "./styles";
 import {OnBoarding} from "../../assets/lottie/OnBoarding";
 import {Timer} from "../../components/Timer/Timer";
 import {useOnboardingData} from "../../context/OnboardingContext";
+import {
+  useOnboardingActions,
+  useOnboardingState,
+} from "../../store/onboardingStore";
+import {useTimerActions} from "../../store/timerStore";
 
 export const OnboardingScreen3 = () => {
-  // const {dailyGoalMinutes} = useOnboardingData();
+  const {updateRegistrationData} = useOnboardingActions();
+  const {registrationData} = useOnboardingState();
 
-  // useEffect(() => {
-  //   console.log("daily goal minutes:", dailyGoalMinutes);
-  // }, [dailyGoalMinutes]);
+  const {setDuration} = useTimerActions();
 
+  useEffect(() => {
+    if (registrationData.dailyGoalMinutes) {
+      setDuration(registrationData.dailyGoalMinutes * 60);
+    }
+  }, []);
+
+  const handleGoalChange = (minutes: string) => {
+    const goal = parseInt(minutes, 10);
+    if (!isNaN(goal)) {
+      updateRegistrationData({dailyGoalMinutes: goal});
+    }
+  };
   return (
     <View style={[styles.onBoardingScreen]}>
       <View style={[{width: 300}]}>
@@ -23,7 +39,7 @@ export const OnboardingScreen3 = () => {
           What is your daily focus goal?
         </Text>
       </View>
-      <Timer onboarding />
+      <Timer onboarding onGoalChange={handleGoalChange} />
     </View>
   );
 };

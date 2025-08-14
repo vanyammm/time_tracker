@@ -9,7 +9,8 @@ const USER_ID_KEY = "@auth_user_id";
 
 interface UserState {
   user: UserForState | null;
-  setUser: (user: User | null) => void;
+  setUser: (user: User | UserForState | null) => void;
+  logout: () => void;
   hydrate: () => Promise<void>;
 }
 
@@ -17,12 +18,20 @@ export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   setUser: (user) => {
     if (user) {
-      set({user: toUserForState(user)});
+      if (user.createdAt instanceof Date) {
+        set({user: toUserForState(user as User)});
+      } else {
+        set({user: user as UserForState});
+      }
       AsyncStorage.setItem(USER_ID_KEY, String(user.id));
     } else {
       set({user: null});
       AsyncStorage.removeItem(USER_ID_KEY);
     }
+  },
+  logout: () => {
+    set({user: null});
+    AsyncStorage.removeItem(USER_ID_KEY);
   },
   hydrate: async () => {
     try {
@@ -39,5 +48,3 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 }));
-
-useUserStore.getState().hydrate();

@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  copyButton: {
+  blueButton: {
     borderRadius: 10,
     backgroundColor: COLORS.blue,
     padding: 6,
@@ -39,10 +39,20 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchInput: {
-    backgroundColor: COLORS.darkBlue,
+    backgroundColor: COLORS.modalBg,
     color: "white",
     paddingVertical: 7,
     paddingHorizontal: 10,
     borderRadius: 8,
+    fontSize: 19,
+    flex: 1,
+  },
+  friendButton: {
+    backgroundColor: COLORS.lightGreen,
+    paddingHorizontal: 10,
+    paddingVertical: 11,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

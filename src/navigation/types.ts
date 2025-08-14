@@ -1,10 +1,19 @@
 import type {StackScreenProps} from "@react-navigation/stack";
 import {OnboardingStackParamList} from "./OnboardingNavigator";
+import {NavigatorScreenParams} from "@react-navigation/native";
+import {ChallengeCreationStackParamList} from "./ChallengeCreationNavigator";
+import {SettingsStackParamList} from "./SettingsNavigator";
 
 export type RootStackParamList = {
   ResolveAuth: undefined;
   OnboardingFlow: undefined;
-  MainApp: undefined;
+  MainApp: NavigatorScreenParams<MainTabParamList>;
+  ChallengeDetails: {challengeId: number};
+  ChallengeResult: {challengeId: number};
+  ChallengeArchive: undefined;
+  ChallengeCreation: NavigatorScreenParams<ChallengeCreationStackParamList>;
+  Settings: NavigatorScreenParams<SettingsStackParamList>;
+  Auth: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =
@@ -31,4 +40,10 @@ export type OnboardingScreenComponentProps = StackScreenProps<
   any
 > & {
   onNext: () => void;
+};
+
+export type MainTabParamList = {
+  Statistics: undefined;
+  Activity: undefined;
+  Friendship: undefined;
 };

@@ -1,13 +1,14 @@
 import * as React from "react";
-import Svg, {Path} from "react-native-svg";
+import Svg, {Path, SvgProps} from "react-native-svg";
 import {COLORS} from "../../theme/colors";
-export const CircleCheck = () => (
+export const CircleCheck = (props: SvgProps) => (
   <Svg
     xmlns="http://www.w3.org/2000/svg"
     width={20}
     height={20}
     fill="none"
     viewBox="0 0 24 24"
+    {...props}
   >
     <Path
       fill={COLORS.lightGreen}

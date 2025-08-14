@@ -1,12 +1,4 @@
-import {
-  Modal,
-  Text,
-  View,
-  SafeAreaView,
-  Dimensions,
-  Button,
-  TextInput,
-} from "react-native";
+import {Modal, View, SafeAreaView, Dimensions} from "react-native";
 import {styles} from "./styles";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import Animated, {
@@ -15,12 +7,9 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import {UIBlock} from "../UIBlock/UIBlock";
-import {UserAvatarCircle} from "../UserAvatarCircle/UserAvatarCircle";
 import {UserForState} from "../../store/api/apiSlice";
 import {useEffect} from "react";
-import {UserCard} from "./UserCard";
-import {SearchBlock} from "./SearchBlock";
+import {FriendshipContent} from "./FriendshipContent";
 
 interface FriendshipModalProps {
   user: UserForState | null;
@@ -72,8 +61,7 @@ export const FriendshipModal: React.FC<FriendshipModalProps> = ({
         <View style={[styles.backdrop]}>
           <Animated.View style={[styles.modalContainer, animatedStyle]}>
             <SafeAreaView style={[styles.modal]}>
-              {user && <UserCard user={user} type="own" />}
-              <SearchBlock />
+              <FriendshipContent />
             </SafeAreaView>
           </Animated.View>
         </View>

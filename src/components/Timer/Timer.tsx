@@ -5,7 +5,6 @@ import {
   RoundedRect,
   BlurMask,
   Circle,
-  rotate,
 } from "@shopify/react-native-skia";
 import {Dimensions, View, Text} from "react-native";
 import {
@@ -18,8 +17,8 @@ import {
 import {GestureDetector, Gesture} from "react-native-gesture-handler";
 import {common} from "../../theme/commonStyles";
 import {COLORS} from "../../theme/colors";
-import {useOnboardingData} from "../../context/OnboardingContext";
 import {useTimerActions, useTimerStore} from "../../store/timerStore";
+import {AnimatedTime} from "../AnimatedTime/AnimatedTime";
 
 const {width} = Dimensions.get("window");
 const SIZE = (width - 45) / 1.4;
@@ -102,16 +101,19 @@ const isPointInArrow = (x: number, y: number, angle: number): boolean => {
 
 interface TimerProps {
   onboarding?: boolean;
+  onGoalChange?: (minues: string) => void;
+  onSaveGoal?: (minutes: number) => void | Promise<void>;
 }
 
-export const Timer: React.FC<TimerProps> = ({onboarding}) => {
-  const {status, remainingSeconds, durationSeconds} = useTimerStore();
+export const Timer: React.FC<TimerProps> = ({
+  onboarding,
+  onGoalChange,
+  onSaveGoal,
+}) => {
+  const {status, remainingSeconds, currentDurationSeconds} = useTimerStore();
   const {setDuration} = useTimerActions();
 
-  const onboardingContext = onboarding ? useOnboardingData() : null;
-  const setDailyGoalMinutes = onboardingContext?.setDailyGoalMinutes;
-  // const initialTotalMinutes = 45;
-  const initialMinutes = useTimerStore.getState().durationSeconds / 60;
+  const initialMinutes = useTimerStore.getState().currentDurationSeconds / 60;
 
   const totalLogicalMinutes = useSharedValue(initialMinutes);
   const initialAngle = (initialMinutes % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
@@ -160,26 +162,23 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
     status === "running" || status === "paused" ? remainingSeconds % 60 : 0;
 
   useEffect(() => {
-    if (onboardingContext && setDailyGoalMinutes) {
-      setDailyGoalMinutes(String(totalLogicalMinutes.value));
-    }
-  }, []);
-
-  useEffect(() => {
     if (status === "paused" || status === "running") {
       const hours = Math.floor(remainingSeconds / 3600);
       const minutes = Math.floor((remainingSeconds % 3600) / 60);
+      totalLogicalMinutes.value = remainingSeconds / 60;
 
       setDisplayTime({hours, minutes});
     } else if (status === "idle") {
-      const minutesFromStore = durationSeconds / 60;
+      const minutesFromStore = currentDurationSeconds / 60;
       totalLogicalMinutes.value = minutesFromStore;
       setDisplayTime({
         hours: Math.floor(minutesFromStore / MINUTES_IN_HOUR),
         minutes: minutesFromStore % MINUTES_IN_HOUR,
       });
+      visualAngle.value =
+        (minutesFromStore % MINUTES_IN_HOUR) * RADIANS_PER_MINUTE;
     }
-  }, [remainingSeconds, status, durationSeconds]);
+  }, [remainingSeconds, status, currentDurationSeconds]);
 
   const gesture = Gesture.Pan()
     .onTouchesDown((event, stateManager) => {
@@ -279,9 +278,12 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
         (finished) => {
           if (finished) {
             totalLogicalMinutes.value = snappedTotalMinutes;
-            if (onboarding && setDailyGoalMinutes) {
+            if (onboarding && onGoalChange) {
               const minutesAsString = String(snappedTotalMinutes);
-              runOnJS(setDailyGoalMinutes)(minutesAsString);
+              runOnJS(onGoalChange)(minutesAsString);
+            }
+            if (onSaveGoal) {
+              runOnJS(onSaveGoal)(snappedTotalMinutes);
             }
             const finalHours = Math.floor(
               snappedTotalMinutes / MINUTES_IN_HOUR,
@@ -323,20 +325,28 @@ export const Timer: React.FC<TimerProps> = ({onboarding}) => {
           </Group>
         </Canvas>
       </GestureDetector>
-      {onboarding && (
+      {(onboarding || onSaveGoal) && (
         <Text style={{color: COLORS.lightGray, fontSize: 16, marginBottom: 15}}>
           Drag the Hand to adjust
         </Text>
       )}
-      <Text style={[common.whiteNormalText, {fontSize: 37, fontWeight: 800}]}>
-        {`${String(displayTime.hours).padStart(2, "0")} : ${String(
-          displayTime.minutes,
-        ).padStart(2, "0")} : ${String(secondsForDisplay).padStart(
-          2,
-          "0",
-        )}`}{" "}
-      </Text>
-      {!onboarding && (
+      {onSaveGoal ? (
+        <Text style={[common.whiteNormalText, {fontSize: 37, fontWeight: 800}]}>
+          {`${String(displayTime.hours).padStart(2, "0")} : ${String(
+            displayTime.minutes,
+          ).padStart(2, "0")} : ${String(secondsForDisplay).padStart(
+            2,
+            "0",
+          )}`}{" "}
+        </Text>
+      ) : (
+        <AnimatedTime
+          hours={displayTime.hours}
+          minutes={displayTime.minutes}
+          seconds={Math.floor(secondsForDisplay)}
+        />
+      )}
+      {!onboarding && !onSaveGoal && (
         <Text style={[common.normalSizeText, {color: COLORS.lightGray}]}>
           {endTimeString}
         </Text>

@@ -45,4 +45,13 @@ export const styles = StyleSheet.create({
     paddingVertical: 5,
     // backgroundColor: "purple",
   },
+  currentChallengeBlockHeader: {
+    color: "white",
+    fontWeight: 600,
+  },
+  currentChallengeStatus: {
+    fontSize: 28,
+    fontWeight: 800,
+    marginBottom: 10,
+  },
 });

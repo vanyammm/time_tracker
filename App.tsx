@@ -1,12 +1,14 @@
 import "react-native-gesture-handler";
 import {enableScreens} from "react-native-screens";
 enableScreens();
-import {Suspense, useEffect} from "react";
+import {Suspense, useEffect, useState} from "react";
 import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
   SafeAreaView,
+  View,
+  Text,
 } from "react-native";
 import {SQLiteProvider, openDatabaseSync} from "expo-sqlite";
 import {useMigrations} from "drizzle-orm/expo-sqlite/migrator";
@@ -22,9 +24,8 @@ import {db} from "./src/db";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {Provider} from "react-redux";
 import {store} from "./src/store/store";
-
-import {useTriggerStatusUpdateMutation} from "./src/store/api/apiSlice";
 import {AppContent} from "./src/AppContent";
+import {useUserStore} from "./src/store/userStore";
 
 const resetOnboarding = async () => {
   try {
@@ -38,6 +39,50 @@ const resetOnboarding = async () => {
 
 export default function App() {
   const {success, error} = useMigrations(db, migrations);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const prepareApp = async () => {
+      try {
+        await useUserStore.getState().hydrate();
+      } catch (e) {
+        console.error("Помилка під час підготовки додатку:", e);
+      } finally {
+        setIsReady(true);
+      }
+    };
+    prepareApp();
+  }, []);
+
+  if (error) {
+    return (
+      <View
+        style={{
+          backgroundColor: "black",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{color: "red"}}>Migration Error: {error.message}</Text>
+      </View>
+    );
+  }
+
+  if (!success || !isReady) {
+    return (
+      <View
+        style={{
+          backgroundColor: "black",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="white" />
+      </View>
+    );
+  }
 
   return (
     <Provider store={store}>
@@ -48,12 +93,9 @@ export default function App() {
           useSuspense
         >
           <GestureHandlerRootView style={{flex: 1}}>
-            <SafeAreaView style={{flex: 1, backgroundColor: COLORS.darkBlue}}>
-              {/* <NavigationContainer>
-                <RootNavigator />
-              </NavigationContainer> */}
+            <View style={{flex: 1, backgroundColor: COLORS.darkBlue}}>
               <AppContent />
-            </SafeAreaView>
+            </View>
           </GestureHandlerRootView>
         </SQLiteProvider>
       </Suspense>

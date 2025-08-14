@@ -56,38 +56,12 @@ export const styles = StyleSheet.create({
   socialListItemWrapper: {
     alignItems: "center",
     gap: 4,
+    marginRight: 15,
   },
   socialListItem: {
     width: 70,
     height: 70,
     backgroundColor: "cadetblue",
     borderRadius: "100%",
-  },
-  leaderBoardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  leaderBoardHeaderButtons: {
-    flexDirection: "row",
-    gap: 5,
-  },
-  leaderBoardNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 10,
-  },
-  leaderBoardNavigationButton: {
-    flex: 1,
-  },
-  leaderBoardTopThree: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  leaderBoardTopThreeItem: {
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

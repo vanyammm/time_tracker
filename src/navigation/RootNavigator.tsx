@@ -4,11 +4,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {View, ActivityIndicator} from "react-native";
 import {StackActions} from "@react-navigation/native";
 
-import {MainNavigation} from "./MainNavigation"; // Ваш TabNavigator
-import {OnboardingNavigator} from "./OnboardingNavigator"; // Наш новий навігатор
+import {MainNavigation} from "./MainNavigation";
+import {OnboardingNavigator} from "./OnboardingNavigator";
 import {COLORS} from "../theme/colors";
 
+import {ChallengeDetailsScreen} from "../screens/ChallengeDetailsScreen/ChallengeDetailsScreen";
+import {ChallengeResultScreen} from "../screens/ChallengeResultScreen/ChallengeResultScreen";
+
 import {RootStackParamList} from "./types";
+import {ChallengeAcrhiveScreen} from "../screens/ChallengeArchiveScreen/ChallengeArchiveScreen";
+import {ChallengeCreationNavigator} from "./ChallengeCreationNavigator";
+import {SettingsNavigator} from "./SettingsNavigator";
+import {AuthModalScreen} from "../screens/AuthModalScreen/AuthModalScreen";
 
 type ResolveAuthScreenProps = StackScreenProps<
   RootStackParamList,
@@ -17,18 +24,15 @@ type ResolveAuthScreenProps = StackScreenProps<
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-// Екран-завантажувач для перевірки стану
 const ResolveAuthScreen = ({navigation}: ResolveAuthScreenProps) => {
   useEffect(() => {
     const checkOnboarding = async () => {
       try {
         const value = await AsyncStorage.getItem("@onboarding_completed");
-        // Перенаправляємо в залежності від результату
         navigation.dispatch(
           StackActions.replace(value === "true" ? "MainApp" : "OnboardingFlow"),
         );
       } catch (e) {
-        // У випадку помилки краще показати онбордінг
         navigation.dispatch(StackActions.replace("OnboardingFlow"));
       }
     };
@@ -56,6 +60,40 @@ export const RootNavigator = () => {
       <Stack.Screen name="ResolveAuth" component={ResolveAuthScreen} />
       <Stack.Screen name="OnboardingFlow" component={OnboardingNavigator} />
       <Stack.Screen name="MainApp" component={MainNavigation} />
+
+      <Stack.Screen name="ChallengeResult" component={ChallengeResultScreen} />
+      <Stack.Screen
+        name="ChallengeDetails"
+        component={ChallengeDetailsScreen}
+      />
+      <Stack.Screen
+        name="ChallengeArchive"
+        component={ChallengeAcrhiveScreen}
+        options={{
+          headerShown: true,
+          title: "Past Challenges",
+          headerTintColor: "white",
+          headerStyle: {
+            backgroundColor: COLORS.darkBlue,
+          },
+          headerBackTitle: "Back",
+        }}
+      />
+
+      <Stack.Screen
+        name="ChallengeCreation"
+        component={ChallengeCreationNavigator}
+        options={{
+          presentation: "modal",
+          gestureEnabled: true,
+        }}
+      />
+      <Stack.Screen name="Settings" component={SettingsNavigator} />
+      <Stack.Screen
+        name="Auth"
+        component={AuthModalScreen}
+        options={{presentation: "modal", gestureEnabled: true}}
+      />
     </Stack.Navigator>
   );
 };

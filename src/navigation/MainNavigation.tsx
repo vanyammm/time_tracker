@@ -1,20 +1,32 @@
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {ActivityScreen} from "../screens/ActivityScreen/ActivityScreen";
-import {FriendshipScreen} from "../screens/FriendshipScreen/FriendshipScreen";
 import {StatiscticsScreen} from "../screens/StatisticsScreen/StatisticsScreen";
-import {COLORS} from "../theme/colors";
 import {Diagram} from "../assets/svg/Diagram";
 import {TimerSvg} from "../assets/svg/TimerSvg";
 import {People} from "../assets/svg/People";
 
-const Tab = createBottomTabNavigator();
+import {FriendshipScreen} from "../screens/FriendshipScreen/FriendshipScreen";
+import {MainTabParamList} from "./types";
+import {BlurView} from "expo-blur";
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const BlurTabBarBackground = () => (
+  <BlurView tint="dark" intensity={80} style={{flex: 1}} />
+);
 
 export const MainNavigation = () => {
   return (
     <Tab.Navigator
+      initialRouteName="Activity"
       screenOptions={({route}) => ({
+        tabBarBackground: () => <BlurTabBarBackground />,
         headerShown: false,
-        tabBarStyle: {backgroundColor: COLORS.darkBlue},
+        tabBarStyle: {
+          backgroundColor: "transparent",
+          borderTopWidth: 0,
+          position: "absolute",
+        },
         tabBarShowLabel: false,
         tabBarItemStyle: {
           paddingTop: 9,
@@ -23,7 +35,7 @@ export const MainNavigation = () => {
           const iconProps = {
             width: 24,
             height: 24,
-            fill: focused ? "white" : "gray", // або будь-яка логіка кольору
+            focused: focused,
           };
 
           switch (route.name) {

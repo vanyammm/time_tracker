@@ -2,31 +2,57 @@ import React, {useEffect, useState} from "react";
 import {View, Text, StyleSheet} from "react-native";
 import {common} from "../../theme/commonStyles";
 import {styles} from "./styles";
-import {ChallengeCreateModal} from "../../components/ChallengeCreateModal/ChallengeCreateModal";
-import {useOnboardingData} from "../../context/OnboardingContext";
 import {UIBlock} from "../../components/UIBlock/UIBlock";
 import {Coin} from "../../../assets/Coin";
-import {generateChallengeDescriptionString} from "../../utils/utils";
+import {
+  formatDate,
+  generateChallengeDescriptionString,
+} from "../../utils/utils";
 import {ChallengeConfiguration} from "../../components/ChallengeCreateModal/ChallengeConfiguration";
 import {challengeTypes} from "../../components/ChallengeCreateModal/ChallengeTypeButtons";
-import {useGetChallengeByIdQuery} from "../../store/api/apiSlice";
+import {
+  useGetChallengeByIdQuery,
+  useGetUserByIdQuery,
+} from "../../store/api/apiSlice";
+import {useOnboardingState} from "../../store/onboardingStore";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../../navigation/types";
+import {useNavigation} from "@react-navigation/native";
+import {useUserStore} from "../../store/userStore";
+
+type Screen7NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export const OnboardingScreen7 = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const {createdChallengeId} = useOnboardingData();
+  const navigation = useNavigation<Screen7NavigationProp>();
+  const {createdChallengeId} = useOnboardingState();
 
   const {
     data: challenge,
     isLoading,
     isSuccess,
-  } = useGetChallengeByIdQuery(createdChallengeId!, {
-    skip: !createdChallengeId,
+  } = useGetChallengeByIdQuery(
+    {
+      challengeId: createdChallengeId!,
+      userId: useUserStore.getState().user!.id,
+    },
+    {
+      skip: !createdChallengeId,
+    },
+  );
+
+  const {data: challengeHost} = useGetUserByIdQuery(challenge?.hostId, {
+    skip: !challenge,
   });
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsModalVisible(true), 100);
+    const timer = setTimeout(() => {
+      navigation.navigate("ChallengeCreation", {
+        screen: "ChallengeCreateModal",
+        params: {onboarding: true},
+      });
+    }, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={[styles.onBoardingScreen]}>
@@ -49,7 +75,9 @@ export const OnboardingScreen7 = () => {
                       justifyContent: "space-between",
                     }}
                   >
-                    <Text style={[common.whiteNormalBoldText]}>
+                    <Text
+                      style={[common.whiteNormalBoldText, {fontWeight: 600}]}
+                    >
                       {challenge.buyIn + " "}
                     </Text>
                     <Coin />
@@ -59,15 +87,17 @@ export const OnboardingScreen7 = () => {
                   <Text style={[styles.screenSecondaryText, {fontSize: 15}]}>
                     Starts
                   </Text>
-                  <Text style={[common.whiteNormalBoldText]}>
-                    {new Date(challenge.startDate).toLocaleDateString()}
+                  <Text style={[common.whiteNormalBoldText, {fontWeight: 600}]}>
+                    {formatDate(challenge.startDate)}
                   </Text>
                 </View>
                 <View>
                   <Text style={[styles.screenSecondaryText, {fontSize: 15}]}>
                     Host
                   </Text>
-                  <Text style={[common.whiteNormalBoldText]}>Vanya Moroz</Text>
+                  <Text style={[common.whiteNormalBoldText, {fontWeight: 600}]}>
+                    {challengeHost?.username}
+                  </Text>
                 </View>
               </View>
               <View>
@@ -91,11 +121,6 @@ export const OnboardingScreen7 = () => {
           </View>
         </View>
       )}
-      <ChallengeCreateModal
-        visible={isModalVisible}
-        setVisible={setIsModalVisible}
-        onboarding
-      />
     </View>
   );
 };

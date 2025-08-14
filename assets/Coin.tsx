@@ -1,10 +1,27 @@
 import {View, StyleSheet, Text} from "react-native";
 import {COLORS} from "../src/theme/colors";
 
-export const Coin = () => {
+interface CoinProps {
+  width?: number;
+  height?: number;
+}
+
+export const Coin: React.FC<CoinProps> = ({width, height}) => {
   return (
-    <View style={styles.coin}>
-      <View style={styles.innerCircle}>
+    <View
+      style={[
+        styles.coin,
+        width && height ? {width: width, height: height} : undefined,
+      ]}
+    >
+      <View
+        style={[
+          styles.innerCircle,
+          width && height
+            ? {width: width * 0.8, height: height * 0.8}
+            : undefined,
+        ]}
+      >
         <Text style={styles.coinText}>₸</Text>
       </View>
     </View>

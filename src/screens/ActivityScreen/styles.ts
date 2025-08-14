@@ -17,11 +17,4 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 3,
   },
-  screenHeader: {
-    fontSize: 37,
-    fontWeight: "800",
-  },
-  timerType: {
-    marginBottom: 10,
-  },
 });

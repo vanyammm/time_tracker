@@ -19,15 +19,11 @@ export const GroupedChallengesList = forwardRef<ChallengesIdListHandle, {}>(
     const currentUser = useUserStore((state) => state.user);
 
     const {data: groupedChallenges, isLoading} = useGetGroupedChallengesQuery(
-      currentUser!.id,
+      currentUser?.id,
       {
         skip: !currentUser,
       },
     );
-
-    console.log("current user (from groupedChallengesList):", currentUser?.id);
-    console.log("GROUPED CHALLENGES");
-    console.log(groupedChallenges);
 
     const [groupedChallengesSelect, setGroupedChallengesSelect] = useState<
       SelectableGroupedChallenge[]
@@ -61,8 +57,6 @@ export const GroupedChallengesList = forwardRef<ChallengesIdListHandle, {}>(
           .flatMap((item) => item.challengeIds),
     }));
 
-    console.log("GROUPED_CHALLENGES_SELECT", groupedChallengesSelect);
-
     return (
       <View>
         <FlatList
@@ -84,4 +78,3 @@ export const GroupedChallengesList = forwardRef<ChallengesIdListHandle, {}>(
     );
   },
 );
-//onPress={() => handleSelect(item.challengeIds)}

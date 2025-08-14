@@ -18,13 +18,11 @@ export const OnboardingProgressBar = ({
   totalSteps,
   style,
 }: OnboardingProgressBarProps) => {
-  // Починаємо з 0, бо компонент тепер один і не перестворюється
   const progress = useSharedValue(0);
 
-  // useEffect буде плавно анімувати зміни, коли currentStep оновлюється
   useEffect(() => {
     const newProgress = totalSteps > 0 ? (currentStep + 1) / totalSteps : 0;
-    progress.value = withTiming(newProgress, {duration: 300}); // Можна налаштувати тривалість
+    progress.value = withTiming(newProgress, {duration: 300});
   }, [currentStep, totalSteps]);
 
   const animatedStyle = useAnimatedStyle(() => {

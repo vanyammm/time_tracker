@@ -27,6 +27,11 @@ export const common = StyleSheet.create({
     fontSize: NORMAL_TEXT_SIZE,
     color: "white",
   },
+  whiteNormalSemiBoldText: {
+    fontSize: NORMAL_TEXT_SIZE,
+    color: "white",
+    fontWeight: SEMI_BOLD_TEXT,
+  },
   whiteNormalBoldText: {
     fontSize: NORMAL_TEXT_SIZE,
     color: "white",

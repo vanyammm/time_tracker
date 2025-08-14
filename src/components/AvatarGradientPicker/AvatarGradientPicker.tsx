@@ -2,13 +2,11 @@ import React, {useState, useCallback, useMemo, useRef, useEffect} from "react";
 import {View, StyleSheet, Dimensions, TouchableOpacity} from "react-native";
 import {Canvas, Circle, LinearGradient, vec} from "@shopify/react-native-skia";
 import convert from "color-convert";
-import {useOnboardingData} from "../../context/OnboardingContext";
 
 const {width} = Dimensions.get("window");
 const SIZE = width / 2.15;
 const CENTER = SIZE / 2;
 
-// --- Пул кольорів залишається тим самим ---
 const COLOR_POOL_PAIRS = [
   ["#ff7e5f", "#feb47b"],
   ["#ff9a9e", "#fecfef"],
@@ -34,20 +32,29 @@ const getHueDistance = (h1: number, h2: number) => {
   return Math.min(diff, 360 - diff);
 };
 
-// --- НОВА КОНСТАНТА ---
-// Кількість найближчих кольорів, з яких будемо робити випадковий вибір.
-// Можете погратись з цим числом (наприклад, 3 або 5).
 const HARMONIOUS_GROUP_SIZE = 4;
 
-export const GradientAvatarShuffle = () => {
-  const {setGradient} = useOnboardingData();
-  const [gradientColors, setGradientColors] = useState(
-    () => COLOR_POOL_PAIRS[Math.floor(Math.random() * COLOR_POOL_PAIRS.length)],
-  );
+interface Props {
+  initialGradient: string[];
+  onSave: (newGradient: string[]) => void;
+}
+
+export const GradientAvatarShuffle: React.FC<Props> = ({
+  initialGradient,
+  onSave,
+}) => {
+  const [gradientColors, setGradientColors] = useState(initialGradient);
+
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
 
   useEffect(() => {
-    saveGradientToContext();
-  }, []);
+    setGradientColors(initialGradient);
+  }, [initialGradient]);
+
+  useEffect(() => {
+    onSaveRef.current(gradientColors);
+  }, [gradientColors]);
 
   const anchorIndexRef = useRef(0);
 
@@ -71,21 +78,17 @@ export const GradientAvatarShuffle = () => {
 
     if (candidates.length === 0) return;
 
-    // 2. Сортуємо кандидатів від найближчого до найвіддаленішого
     candidates.sort((a, b) => a.distance - b.distance);
 
-    // 3. Беремо невелику групу найближчих (гармонійних) кольорів
     const harmoniousGroup = candidates.slice(
       0,
       Math.min(candidates.length, HARMONIOUS_GROUP_SIZE),
     );
 
-    // 4. Випадково обираємо ОДИН колір з цієї гармонійної групи
     const chosenCandidate =
       harmoniousGroup[Math.floor(Math.random() * harmoniousGroup.length)];
 
     const newColorHex = chosenCandidate.color.hex;
-    // --- КІНЕЦЬ ЗМІН ---
 
     const newGradient = [anchorColorHex, newColorHex];
 
@@ -93,17 +96,8 @@ export const GradientAvatarShuffle = () => {
       anchorIndexRef.current === 0 ? newGradient : newGradient.reverse();
     setGradientColors(finalGradient);
 
-    // console.log(
-    //   `Kept ${anchorColorHex}, randomly chose neighbor ${newColorHex} from a group of ${harmoniousGroup.length}`,
-    // );
-
     anchorIndexRef.current = (anchorIndexRef.current + 1) % 2;
-    saveGradientToContext();
   }, [gradientColors, colorsWithHsl]);
-
-  const saveGradientToContext = () => {
-    setGradient(gradientColors);
-  };
 
   return (
     <View style={styles.container}>

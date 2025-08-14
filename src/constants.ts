@@ -1,1 +1,1 @@
-export const DATABASE_NAME = "tasks_v2";
+export const DATABASE_NAME = "tasks_v3";

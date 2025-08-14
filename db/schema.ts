@@ -25,6 +25,12 @@ export const users = sqliteTable("users", {
 
   coins: integer("coins").notNull().default(900),
 
+  dailyProgress: integer("daily_progress").notNull().default(0),
+
+  weeklyProgress: integer("weekly_progress").notNull().default(0),
+
+  lastProgressUpdate: integer("last_progress_update", {mode: "timestamp_ms"}),
+
   // 6. Дата реєстрації (зберігається як число - Unix timestamp)
   createdAt: integer("created_at", {mode: "timestamp"})
     .notNull()
@@ -72,6 +78,8 @@ export const challenges = sqliteTable("challenges", {
 
   // 9. Дата початку челенджу
   startDate: integer("start_date", {mode: "timestamp"}).notNull(),
+
+  endDate: integer("end_date", {mode: "timestamp"}),
 });
 
 // =================================================================
@@ -98,14 +106,46 @@ export const challengeParticipants = sqliteTable(
 
     // 3. Поточний прогрес учасника (наприклад, виконані години)
     progress: integer("progress").notNull().default(0),
+    dailyStreakProgress: text("daily_streak_progress", {mode: "json"}).$type<
+      number[]
+    >(),
     status: text("status", {enum: participantStatuses})
       .notNull()
       .default("in_progress"),
+    isResultViewed: integer("is_result_viewed", {mode: "boolean"})
+      .notNull()
+      .default(false),
   },
   (table) => {
     // Створюємо складений первинний ключ, щоб пара (користувач, челендж) була унікальною.
     return {
       pk: primaryKey({columns: [table.userId, table.challengeId]}),
+    };
+  },
+);
+
+const inviteStatuses = ["pending", "accepted", "declined"] as const;
+
+export const challengeInvites = sqliteTable(
+  "challenge_invites",
+  {
+    challengeId: integer("challenge_id")
+      .notNull()
+      .references(() => challenges.id, {onDelete: "cascade"}),
+
+    senderId: integer("sender_id")
+      .notNull()
+      .references(() => users.id, {onDelete: "cascade"}),
+
+    receiverId: integer("receiver_id")
+      .notNull()
+      .references(() => users.id, {onDelete: "cascade"}),
+
+    status: text("status", {enum: inviteStatuses}).notNull().default("pending"),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({columns: [table.challengeId, table.receiverId]}),
     };
   },
 );
@@ -186,10 +226,42 @@ export type ChallengeParticipantDetails = {
   username: string;
   avatarGradient: string[];
   progress: number;
+  dailyStreakProgress: number[] | null;
   status: "in_progress" | "completed" | "failed";
 };
 
 export type GroupedChallenge = {
   action: string;
   challengeIds: number[];
+};
+
+export type ChallengeWithMyDetails = Challenge & {
+  myProgress: number;
+  myStatus: "in_progress" | "completed" | "failed";
+  isResultViewed: boolean;
+  myDailyStreakProgress: number[] | null;
+};
+
+export type LeaderboardEntry = {
+  rank: number;
+  userId: number;
+  username: string;
+  avatarGradient: string[];
+  progress: number;
+};
+
+export type LeaderboardResult = {
+  top10: LeaderboardEntry[];
+  currentUser: LeaderboardEntry | null;
+};
+
+export type ChallengeType = "race" | "streak" | "team" | "regular";
+export type ChallengeStatus = "active" | "finished" | "pending";
+export type ParticipantStatus = "failed" | "completed" | "in_progress";
+
+export type PendingParticipant = {
+  id: number;
+  username: string;
+  avatarGradient: string[];
+  status: "participant" | "invited";
 };

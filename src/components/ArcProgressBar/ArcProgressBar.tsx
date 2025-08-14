@@ -2,23 +2,26 @@ import React, {useState} from "react";
 import {Canvas, Path, Skia, SkPath, useFont} from "@shopify/react-native-skia";
 import {useDerivedValue, withTiming} from "react-native-reanimated";
 import {Text, View} from "react-native";
-import {common, NORMAL_TEXT_SIZE} from "../../theme/commonStyles";
+import {common} from "../../theme/commonStyles";
 import {styles} from "./styles";
 
 interface ArcProgressBarProps {
-  progress: number; // від 0 до 1
-  width: number;
-  strokeWidth: number;
+  progress: number;
+  inModal?: boolean;
+  progressInSeconds?: number;
+  streakMode?: boolean;
 }
 
 export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   progress,
-  width,
-  strokeWidth,
+  inModal,
+  progressInSeconds,
+  streakMode = false,
 }) => {
+  const width = 247;
+  const strokeWidth = 21;
   const height = width / 2;
 
-  // Створюємо наш SVG-шлях для дуги
   const path: SkPath | null = Skia.Path.MakeFromSVGString(
     `M ${strokeWidth / 2} ${height + 10} A ${(width - strokeWidth) / 2.3} ${
       height / 1.5
@@ -29,17 +32,20 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     return null;
   }
 
-  // Створюємо анімоване значення для плавності
   const animatedProgress = useDerivedValue(() => {
     return withTiming(progress, {duration: 300});
   }, [progress]);
 
   const [textWidth, setTextWidth] = useState(0);
 
+  const progressInHours =
+    typeof progressInSeconds === "number"
+      ? Math.floor((progressInSeconds / 3600) * 10) / 10
+      : null;
+
   return (
     <View style={{marginBottom: 45}}>
       <Canvas style={{width, height: height + strokeWidth}}>
-        {/* 1. Малюємо фонову дугу (завжди повна) */}
         <Path
           path={path}
           style="stroke"
@@ -49,8 +55,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
           start={0}
           end={1}
         />
-
-        {/* 2. Малюємо дугу прогресу поверх фонової */}
         <Path
           path={path}
           style="stroke"
@@ -58,8 +62,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
           strokeCap="round"
           color="white"
           start={0}
-          // Властивість `end` напряму керує довжиною дуги.
-          // Ми просто передаємо сюди наше анімоване значення прогресу.
           end={animatedProgress}
         />
       </Canvas>
@@ -69,12 +71,14 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
           {top: height / 1.4, left: width / 2 - textWidth / 2},
         ]}
       >
-        <Text style={[common.whiteHugeText]}>74%</Text>
+        <Text style={[common.whiteHugeText]}>
+          {inModal ? `${Math.floor(progress * 100)}%` : `${progressInHours}`}
+        </Text>
         <Text
           style={[common.grayNormalText]}
           onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
         >
-          of daily goal
+          {inModal ? "of daily goal" : streakMode ? "hours today" : "hours"}
         </Text>
       </View>
     </View>

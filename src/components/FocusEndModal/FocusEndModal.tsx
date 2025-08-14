@@ -57,24 +57,37 @@ export const FocusEndModal: React.FC<FocusEndModalProps> = ({
       SelectedChallengesRef.current?.getChallengesIdListState();
 
     if (selectedChallenges && currentUser) {
-      console.log(
-        "[FocusEndModal]: Saving. Selected challenges: ",
-        selectedChallenges,
-      );
       try {
         await addProgress({
-          userId: currentUser!.id,
+          userId: currentUser.id,
           challengeIds: selectedChallenges,
           secondsToAdd: secondsPassed,
         }).unwrap();
 
-        console.log("PROGRESS SAVED!");
         handleCloseModal();
       } catch (error: any) {
         console.error("failed to add progress", error);
       }
     }
   };
+
+  const dailyProgressPercentage = (() => {
+    if (!currentUser || !currentUser.dailyGoalMinutes) {
+      return 0;
+    }
+
+    const dailyGoalInSeconds = currentUser.dailyGoalMinutes * 60;
+
+    if (dailyGoalInSeconds === 0) {
+      return 1;
+    }
+
+    const totalDailyProgressInSeconds =
+      (currentUser.dailyProgress || 0) + secondsPassed;
+
+    const ratio = totalDailyProgressInSeconds / dailyGoalInSeconds;
+    return Math.max(0, Math.min(1, ratio));
+  })();
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -85,9 +98,8 @@ export const FocusEndModal: React.FC<FocusEndModalProps> = ({
         >
           <CircleXMark />
         </TouchableHighlight>
-        {/* <Button title="close modal" onPress={() => setVisible(false)} /> */}
         <Text style={[common.grayHugeBoldText]}>Warming up?</Text>
-        <ArcProgressBar progress={0.74} width={247} strokeWidth={21} />
+        <ArcProgressBar progress={dailyProgressPercentage} inModal />
         <Text
           style={[
             common.grayHugeBoldText,

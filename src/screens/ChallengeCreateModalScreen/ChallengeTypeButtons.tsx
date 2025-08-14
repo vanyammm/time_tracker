@@ -57,8 +57,6 @@ const UnmemorizedChallengeTypeButtons: React.FC<ChallengeTypeButtonsProps> = ({
     </Pressable>
   );
 
-  // console.log('buttons component');
-
   return (
     <View
       style={styles.challengeTypeContainer}
@@ -81,7 +79,6 @@ const UnmemorizedChallengeTypeButtons: React.FC<ChallengeTypeButtonsProps> = ({
         numColumns={2}
         columnWrapperStyle={styles.row}
         scrollEnabled={false}
-        // contentContainerStyle={styles.container}
       />
     </View>
   );

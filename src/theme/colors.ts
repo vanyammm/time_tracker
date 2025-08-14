@@ -10,8 +10,8 @@ export const COLORS = {
   dark: "#151c2c",
   red: "#f12634",
   blue: "#07679f",
+  gray: "#888b94",
 };
-
 export const TEXT_COLORS = {
   white: "white",
 };

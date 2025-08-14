@@ -19,6 +19,10 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import {registrationSchema} from "../../validationSchema";
 import {useSignInMutation, useSignUpMutation} from "../../store/api/apiSlice";
 import {useUserStore} from "../../store/userStore";
+import {
+  useOnboardingActions,
+  useOnboardingState,
+} from "../../store/onboardingStore";
 
 export const OnboardingScreen4 = () => {
   const [signIn, {isLoading: isSigningIn, error: signInError}] =
@@ -26,16 +30,12 @@ export const OnboardingScreen4 = () => {
   const [signUp, {isLoading: isSigningUp, error: signUpError}] =
     useSignUpMutation();
 
+  const {registrationData} = useOnboardingState();
+  const {setIsNextStepAllowed} = useOnboardingActions();
+
   const {user, setUser} = useUserStore();
 
-  const {
-    gradient,
-    dailyGoalMinutes,
-    registrationData,
-    setRegistrationData,
-    setIsNextStepAllowed,
-    setCurrentUser,
-  } = useOnboardingData();
+  if (user) console.log(`SCREEN_4. user: ${user.username}`);
 
   const {
     control,
@@ -70,12 +70,9 @@ export const OnboardingScreen4 = () => {
   }) => {
     Keyboard.dismiss();
     const finalRegistrationData = {
+      ...registrationData,
       username: data.username,
       password: data.password,
-      avatarGradient: gradient!,
-      dailyGoalMinutes: dailyGoalMinutes!
-        ? parseInt(dailyGoalMinutes, 10)
-        : undefined,
     };
     const result = await signUp(finalRegistrationData);
     if ("data" in result) {
@@ -126,13 +123,14 @@ export const OnboardingScreen4 = () => {
             )}
           />
           <View style={localStyles.authFormButtons}>
-            <TouchableOpacity
-              style={[localStyles.signInButton]}
-              onPress={handleSubmit(handleSignInPress)}
+            <UIButton
+              onPress={handleSubmit(handleSignUpPress)}
+              style={{
+                marginHorizontal: "auto",
+                paddingHorizontal: 20,
+                paddingVertical: 12,
+              }}
             >
-              <Text style={[common.whiteNormalBoldText]}>Sign In</Text>
-            </TouchableOpacity>
-            <UIButton onPress={handleSubmit(handleSignUpPress)}>
               Sign Up
             </UIButton>
           </View>
