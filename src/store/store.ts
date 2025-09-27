@@ -4,10 +4,8 @@ import {apiSlice} from "./api/apiSlice";
 
 export const store = configureStore({
   reducer: {
-    // Додаємо редюсер від RTK Query
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
-  // Додаємо middleware від RTK Query
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
 });
