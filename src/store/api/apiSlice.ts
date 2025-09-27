@@ -445,18 +445,14 @@ export const apiSlice = createApi({
       ChallengeParticipantDetails[],
       number
     >({
-      // Перший тип - що повертає (масив учасників), другий - що приймає (ID челенджу)
       queryFn: async (challengeId) => {
         try {
           const participants = await getParticipantsByChallengeId(challengeId);
-          // Тут не потрібна функція-маппер `to...ForState`, бо дані вже в потрібному форматі
           return {data: participants};
         } catch (error: any) {
           return {error: {message: error.message}};
         }
       },
-      // Надаємо тег, щоб кеш знав, з якими даними він працює
-      // Це корисно, якщо в майбутньому знадобиться оновлювати список учасників
       providesTags: (result, error, challengeId) => [
         {type: "Participant", id: `LIST-${challengeId}`},
       ],
